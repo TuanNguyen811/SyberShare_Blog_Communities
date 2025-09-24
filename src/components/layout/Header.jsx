@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import DarkModeToggle from '@components/ui/DarkModeToggle';
 import TagPill from '@components/ui/TagPill';
-import { topics } from '@data/mockData';
+import { trendingTopics } from '@data/mockData';
 import { useAuth } from '@contexts/AuthContext';
 
 const Header = () => {
@@ -101,8 +101,8 @@ const Header = () => {
 
         {/* Topics Navigation */}
         <div className="hidden md:flex items-center gap-3 py-3 overflow-x-auto">
-          {topics.slice(0, 8).map((topic, index) => (
-            <TagPill key={topic} label={topic} active={index === 0} />
+          {trendingTopics.slice(0, 8).map((topic, index) => (
+            <TagPill key={topic} tag={topic} active={index === 0} />
           ))}
           <button className="text-sm flex items-center gap-1 px-3 py-1 rounded-full border border-gray-200 hover:bg-gray-50 dark:border-neutral-700 dark:hover:bg-neutral-900 transition-colors">
             More <ChevronRight className="h-4 w-4" />
