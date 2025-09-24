@@ -1,19 +1,39 @@
-import { useState } from "react";
-import PostCard from "../components/PostCard";
+import { motion } from "framer-motion";
+import HeroSection from '@components/layout/HeroSection';
+import Sidebar from '@components/layout/Sidebar';
+import ArticleCard from '@components/ui/ArticleCard';
+import { posts } from '@data/mockData';
 
 export default function HomePage() {
-  const [posts] = useState([
-    { id: 1, title: "XSS Attack Explained", author: "Alice", date: "2025-09-10" },
-    { id: 2, title: "SQL Injection Basics", author: "Bob", date: "2025-09-09" },
-    { id: 3, title: "Defensive Security 101", author: "Charlie", date: "2025-09-08" },
-  ]);
-
   return (
-    <div>
-      <h2>Latest Posts</h2>
-      {posts.map(post => (
-        <PostCard key={post.id} {...post} />
-      ))}
-    </div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <HeroSection />
+      
+      <div className="mx-auto max-w-7xl px-4 grid md:grid-cols-12 gap-10 py-10">
+        {/* Articles */}
+        <div className="md:col-span-8">
+          {posts.map((post) => (
+            <ArticleCard key={post.id} post={post} />
+          ))}
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between py-8">
+            <button className="px-4 py-2 rounded-full border border-gray-300 hover:bg-gray-50 dark:border-neutral-700 dark:hover:bg-neutral-900 transition-colors">
+              Newer
+            </button>
+            <button className="px-4 py-2 rounded-full border border-gray-300 hover:bg-gray-50 dark:border-neutral-700 dark:hover:bg-neutral-900 transition-colors">
+              Older
+            </button>
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <Sidebar />
+      </div>
+    </motion.div>
   );
 }
