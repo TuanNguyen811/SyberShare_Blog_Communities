@@ -52,10 +52,19 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(user)
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
+      // Extract validation error messages in a more structured format
+      const fieldErrors = Object.entries(error.flatten().fieldErrors).reduce(
+        (acc, [field, messages]) => {
+          acc[field] = messages ? messages[0] : 'Lỗi không hợp lệ';
+          return acc;
+        }, 
+        {} as Record<string, string>
+      );
+      
       return NextResponse.json(
-        { error: "Dữ liệu không hợp lệ", details: error.errors },
+        { error: "Dữ liệu không hợp lệ", fieldErrors },
         { status: 400 }
       )
     }

@@ -66,7 +66,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -75,6 +75,8 @@ export default function LoginPage() {
                 type="email"
                 placeholder="your@email.com"
                 required
+                autoComplete="off"
+                autoFocus
               />
             </div>
             
@@ -86,6 +88,7 @@ export default function LoginPage() {
                 type="password"
                 placeholder="••••••••"
                 required
+                autoComplete="new-password" // This tricks browsers into not autofilling
               />
             </div>
 

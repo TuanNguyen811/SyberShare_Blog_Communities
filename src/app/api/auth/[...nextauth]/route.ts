@@ -13,12 +13,12 @@ const credentialsSchema = z.object({
 })
 
 // Create a custom adapter that extends PrismaAdapter
-function CustomPrismaAdapter(prisma) {
+function CustomPrismaAdapter(prisma: any) {
   const standardAdapter = PrismaAdapter(prisma);
   
   return {
     ...standardAdapter,
-    createUser: async (data) => {
+    createUser: async (data: any) => {
       // Generate a username based on the email or name
       const baseUsername = data.email?.split('@')[0] || 
                           (data.name?.toLowerCase().replace(/\s+/g, '.')) || 
@@ -92,7 +92,7 @@ const handler = NextAuth({
     }),
   ],
   callbacks: {
-    jwt: ({ token, user }) => {
+    jwt: ({ token, user }: { token: any, user: any }) => {
       if (user) {
         // Copy all user properties to the token
         token.id = user.id
@@ -106,7 +106,7 @@ const handler = NextAuth({
       }
       return token
     },
-    session: ({ session, token }) => {
+    session: ({ session, token }: { session: any, token: any }) => {
       // Include custom user properties from token in the session
       return {
         ...session,
