@@ -1,0 +1,262 @@
+# SyberShare
+
+# SyberS Blog Project Development Roadmap (Fullstack, Multi-user Blog)
+
+---
+
+## I. Project Overview
+
+**Objective:** Build a multi-user community blog platform capable of:
+
+- Registration/login (Email + Google OAuth)
+- Manage personal profiles (avatar, bio, additional information)
+- Create and edit posts (Rich Text + images)
+- Comment, like, bookmark, follow
+- Search, trending, related post suggestions
+- Administration (users, posts, tags, categories)
+- Real-time notifications
+
+**Technology used:**
+
+- **Frontend:** Next.js (App Router), TypeScript, TailwindCSS, shadcn/ui, TipTap Editor
+- **Backend:** Next.js Route Handlers (REST API), Prisma ORM
+- **Database:** PostgreSQL
+- **Storage:** Supabase Storage
+- **Authentication:** Auth.js (Email/Password + Google OAuth)
+- **Deployment:** Vercel (Frontend + API), Supabase (DB + Storage)
+- **Real-time:** Ably or Pusher (or long-polling in the initial phase)
+- **Logs/Monitor:** Sentry, Logtail
+
+---
+
+## II. Database Design
+
+**Main tables:**
+
+- `users`: id, email, password_hash, name, username, avatar_url, bio, birth_year, address, phone, role, created_at
+- `posts`: id, author_id, title, slug, content_md, content_html, cover_url, status, published_at, view_count
+- `tags`: id, name, slug
+- `categories`: id, name, slug
+- `post_tags`: post_id, tag_id
+- `post_categories`: post_id, category_id
+- `comments`: id, post_id, author_id, parent_id, content, is_deleted, created_at
+- `likes`: user_id, post_id, created_at
+- `bookmarks`: user_id, post_id, created_at
+- `follows`: follower_id, following_id, created_at
+- `notifications`: id, user_id, type, ref_id, is_read, created_at
+- `admin_logs`: id, admin_id, action, target_type, target_id, meta, created_at
+
+---
+
+## III. Detailed Development Roadmap
+
+### **Milestone A — Initial Setup & Basic Authentication**
+
+**Objective:** Project structure, set up authentication system and database connection.
+
+**Tasks:**
+
+- Create monorepo structure (Next.js + Prisma)
+- Install TailwindCSS + shadcn/ui
+- Set up PostgreSQL + initial Prisma schema (users, sessions)
+- Configure Auth.js (Email/Password + Google OAuth)
+- Registration/login page + form validation
+- Basic dashboard displaying user information after login
+
+**Result:** Can register, log in, log out, and view basic profile.
+
+---
+
+### **Milestone B — Profiles & Permissions**
+
+**Objective:** Manage personal profiles and user permissions.
+
+**Tasks:**
+
+- Add columns and profile interface: bio, avatar, address, phone, birth_year
+- Upload avatar via Supabase Storage
+- Create a "Profile Settings" page
+- Add `role` fields (USER, AUTHOR, ADMIN)
+- Middleware to protect routes `/dashboard`, `/editor`, `/admin`
+- RoleGate component to hide/show UI based on role
+
+**Result:** Users can update their profiles; admins can access the admin page.
+
+---
+
+### **Milestone C — Basic article**
+
+**Objective:** CRUD articles with an image editor.
+
+**Tasks:**
+
+- Design posts, tags, categories, post_tags, post_categories tables
+- Build CRUD API for posts
+- Editor page (TipTap Rich Text + image upload + preview)
+- Home page displaying the list of posts
+- Detailed post page `/p/[slug]`
+- Automatically generate slugs based on titles
+- Select and assign tags/categories when writing posts
+
+**Result:** Can create, edit, delete, view public articles; supports images and Markdown.
+
+---
+
+### **Milestone D — Social interaction**
+
+**Objective:** Increase interaction: Likes, Bookmarks, Follows, Comments.
+
+**Tasks:**
+
+- Like posts (toggle), count number of likes
+- Bookmark posts, display saved list
+- Follow/Unfollow users, display followers/following
+- Nested comment system
+- Pagination of comments, soft delete (is_deleted)
+- Rate-limit Like/Comment actions
+
+**Result:** Users can interact and exchange on the platform.
+
+---
+
+### **Milestone E — Discover content**
+
+**Objective:** Display featured posts, suggestions, and search results.
+
+**Tasks:**
+
+- Create a view count statistics table
+- Build a trending algorithm (based on views, likes, comments in 7/30 days)
+- Recommend related articles (based on tags and authors)
+- Perform full-text search using PostgreSQL Full Text Search
+- Trending, Search, and Related Posts pages
+
+**Result:** Trending page, search bar, and list of related posts.
+
+---
+
+### **Milestone F — Admin page**
+
+**Objective:** Manage users, posts, and tags/categories.
+
+**Tasks:**
+
+- User Management Page: search, change roles, lock/unlock accounts
+- Posts Management Page: hide/show, delete posts, approve pending posts
+- CRUD Tags/Categories (add, edit, delete, merge)
+- Record operation history in `admin_logs`
+
+**Result:** Admin can manage the entire system.
+
+---
+
+### **Milestone G — Notifications & Realtime**
+
+**Objective:** Send notifications when there is interaction.
+
+**Tasks:**
+
+- Create `notifications` table
+- Send notifications when there are new follows, likes, or comments
+- Display notification bell and unread list
+- Mark notifications as read
+- Integrate real-time (Pusher/Ably or long-polling)
+
+**Result:** Users see notifications immediately when there is interaction.
+
+---
+
+### **Milestone H — Deployment & Security**
+
+**Objective:** Complete CI/CD, logs, monitoring, and backup.
+
+**Tasks:**
+
+- Set up GitHub Actions (lint, test, build, deploy)
+- Connect Supabase logs and set up regular backups
+- Secure the `.env` environment and API keys
+- Deploy Sentry and Health Check monitoring
+- Set up daily database backups
+
+**Result:** A stable, secure, and resilient system.
+
+---
+
+## IV. Security & Testing
+
+**Security:**
+
+- Password hashing using Argon2id
+- CSRF protection for POST forms
+- CORS configured for the correct domain
+- Input validation (Zod)
+- Rate limiting for sensitive actions
+
+**Testing:**
+
+- Unit test for helpers (slug, ranking)
+- Integration test for main API (auth, posts)
+- E2E flow: register → write post → comment → like → follow
+
+---
+
+## V. SEO & Performance
+
+- SSR for post pages
+- Use Supabase CDN for images
+- Client-side image compression before upload
+- Use sitemap.xml, robots.txt, OG meta tags
+- Cache trending + popular queries using Redis
+
+---
+
+## VI. Deployment & Scaling
+
+- **Deployment:** Vercel (web + API), Supabase (DB + Storage)
+- **Scale:** Separate Notifications, Search, Analytics modules when needed
+- **Optimization:** Redis cache, CDN edge caching for popular articles
+- **Advanced real-time:** Switch to WebSocket or event queues
+
+---
+
+## VII. Parallel Learning Plan (8 weeks)
+
+| Week | Learning Topic | Outcome |
+| --- | --- | --- |
+| 1–2 | Next.js App Router, Auth.js, Prisma, Supabase | Login, Active Database |
+| 3 | TipTap Editor, image upload, basic SEO | Complete article drafting |
+| 4 | Like, Bookmark, Comment, Pagination | Full social interaction |
+| 5 | Search FTS, Trending, Related Posts | Discover content |
+| 6 | Admin, RBAC, Moderation | Content Management |
+| 7 | Notifications, Real-time | Activity Notifications |
+| 8 | CI/CD, Security, Logs, Testing | Deployment v1 |
+
+---
+
+## VIII. Expected Results
+
+- Complete community blog system (v1)
+- Users can create, interact, search, and follow each other
+- Admins can easily manage content and users
+- The system operates stably, with logs and backups
+
+---
+
+## IX. Future Extensions After Version v1
+
+- Collaborator (co-authoring articles)
+- RSS Feed and public API
+- Advanced search (Meilisearch)
+- Article suggestions using Machine Learning
+- 2FA for admins
+- Customizable interface (theme, article layout)
+
+---
+
+**Summary:**
+
+The project is divided into 8 main milestones, completed from the Auth platform → CRUD articles → interaction → discovery → administration → notifications → deployment. Upon completion, the SyberS Blog system can be viewed as a comprehensive community knowledge and research sharing platform.
+
+[I. Project Overview](https://www.notion.so/I-Project-Overview-286a8b764f80808d9dcbf42f4e673de6?pvs=21)
+
+[II. Database Design](https://www.notion.so/II-Database-Design-286a8b764f8080bf8944fa2c1c719b4c?pvs=21)

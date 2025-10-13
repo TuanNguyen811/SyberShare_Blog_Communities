@@ -1,0 +1,229 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role           @default(USER)
+  bio           String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  address       String?
+  phone         String?
+  username      String         @unique
+  avatar_url    String?
+  birth_year    Int?
+  password_hash String?
+  accounts      Account[]
+  adminLogs     AdminLog[]
+  bookmarks     Bookmark[]
+  comments      Comment[]
+  following     Follow[]       @relation("followers")
+  followers     Follow[]       @relation("following")
+  likes         Like[]
+  notifications Notification[] @relation("recipient")
+  posts         Post[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model Post {
+  id           String         @id @default(cuid())
+  author_id    String         @map("authorId")
+  title        String
+  slug         String         @unique
+  content_html String         @map("contentHtml")
+  content_md   String?        @map("contentMd")
+  cover_url    String?        @map("coverUrl")
+  status       PostStatus     @default(DRAFT)
+  published_at DateTime?      @map("publishedAt")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  view_count   Int            @default(0) @map("viewCount")
+  bookmarks    Bookmark[]
+  comments     Comment[]
+  likes        Like[]
+  categories   PostCategory[]
+  tags         PostTag[]
+  author       User           @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@map("posts")
+}
+
+model Tag {
+  id    String    @id @default(cuid())
+  name  String    @unique
+  slug  String    @unique
+  posts PostTag[]
+
+  @@map("tags")
+}
+
+model Category {
+  id    String         @id @default(cuid())
+  name  String         @unique
+  slug  String         @unique
+  posts PostCategory[]
+
+  @@map("categories")
+}
+
+model PostTag {
+  post_id String @map("postId")
+  tag_id  String @map("tagId")
+  post    Post   @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  tag     Tag    @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+
+  @@id([post_id, tag_id])
+  @@map("post_tags")
+}
+
+model PostCategory {
+  post_id     String   @map("postId")
+  category_id String   @map("categoryId")
+  category    Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  post        Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+
+  @@id([post_id, category_id])
+  @@map("post_categories")
+}
+
+model Comment {
+  id         String    @id @default(cuid())
+  post_id    String    @map("postId")
+  author_id  String    @map("authorId")
+  parent_id  String?   @map("parentId")
+  content    String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  is_deleted Boolean   @default(false) @map("isDeleted")
+  author     User      @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  parent     Comment?  @relation("CommentToComment", fields: [parent_id], references: [id])
+  replies    Comment[] @relation("CommentToComment")
+  post       Post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Like {
+  user_id   String   @map("userId")
+  post_id   String   @map("postId")
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, post_id])
+  @@map("likes")
+}
+
+model Bookmark {
+  user_id   String   @map("userId")
+  post_id   String   @map("postId")
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, post_id])
+  @@map("bookmarks")
+}
+
+model Follow {
+  follower_id  String   @map("followerId")
+  following_id String   @map("followingId")
+  createdAt    DateTime @default(now())
+  follower     User     @relation("followers", fields: [follower_id], references: [id], onDelete: Cascade)
+  following    User     @relation("following", fields: [following_id], references: [id], onDelete: Cascade)
+
+  @@id([follower_id, following_id])
+  @@map("follows")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  user_id   String           @map("recipientId")
+  type      NotificationType
+  ref_id    String           @map("refId")
+  is_read   Boolean          @default(false) @map("isRead")
+  createdAt DateTime         @default(now())
+  recipient User             @relation("recipient", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model AdminLog {
+  id          String   @id @default(cuid())
+  admin_id    String   @map("adminId")
+  action      String
+  target_type String   @map("targetType")
+  target_id   String   @map("targetId")
+  meta        Json?
+  createdAt   DateTime @default(now())
+  admin       User     @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+
+  @@map("admin_logs")
+}
+
+enum Role {
+  USER
+  AUTHOR
+  ADMIN
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum NotificationType {
+  FOLLOW
+  LIKE
+  COMMENT
+}
